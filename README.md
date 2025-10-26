@@ -50,3 +50,68 @@ cd Sistema_Gestion_ADE
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
+Para generar el ejecutable:
+
+pyinstaller --onefile --noconsole --icon "iconos/ade.ico" ^
+  --name "Sistema_Gestion_ADE" ^
+  --add-data "temas;temas" ^
+  --add-data "iconos;iconos" ^
+  --add-data "client_secret.json;." ^
+  --add-data "Respaldo_Local;Respaldo_Local" ^
+  --add-data "init.sql;." ^
+  --add-data "config.ini;." ^
+  --add-data "my.cnf;." ^
+  --add-data "clave.env;." ^
+  --hidden-import pandas ^
+  --hidden-import pydrive2 ^
+  main.py
+
+🔄 Actualizaciones automáticas
+
+El programa puede verificar actualizaciones en GitHub y descargar nuevas versiones.
+También puedes hacerlo manualmente desde Releases
+.
+
+📦 Estructura del proyecto
+Sistema_Gestion_ADE/
+├── main.py
+├── interfaz.py
+├── conexion.py
+├── utilidades.py
+├── temas/
+├── iconos/
+├── Respaldo_Local/
+├── init.sql
+├── config.ini
+├── clave.env
+├── version.py
+└── README.md
+
+🧑‍💻 Tecnologías utilizadas
+
+Python 3.13
+
+PySide6
+
+MySQL Connector
+
+Pandas
+
+PyInstaller
+
+GitHub Actions
+
+📄 Licencia
+
+Este proyecto está licenciado bajo la MIT License.
+Puedes usarlo, modificarlo y distribuirlo libremente, siempre que mantengas el aviso de copyright.
+
+© 2025 David Alonso Mora Ureña
+
+☕ Agradecimientos
+
+A la Academia ADE por inspirar el desarrollo del sistema.
+
+A la comunidad Python por las herramientas open-source.
+
+
