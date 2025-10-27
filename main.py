@@ -5,6 +5,7 @@ from interfaz import VentanaPrincipal
 from conexion import conectar
 from utilidades import resource_path, aplicar_tema
 from temas.estilos import estilo
+from utilidades import verificar_actualizacion_automatica
 import sys, os, requests
 
 # ======================================================
@@ -36,21 +37,7 @@ except Exception as e:
     sys.exit(1)
 
 
-# ======================================================
-# 🔹 Función de actualización (opcional)
-# ======================================================
-def verificar_actualizacion():
-    """Comprueba si hay una versión nueva en un servidor remoto."""
-    try:
-        version_actual = "1.2"
-        url_version = "https://tu-sitio.com/version.txt"
-        version_remota = requests.get(url_version, timeout=5).text.strip()
-        if version_actual != version_remota:
-            print(f"⚠️ Nueva versión disponible: {version_remota} (actual: {version_actual})")
-        else:
-            print("✅ La aplicación está actualizada.")
-    except Exception as e:
-        print(f"⚠️ No se pudo verificar la actualización: {e}")
+
 
 
 # ======================================================
@@ -81,6 +68,7 @@ def mostrar_ventana():
     window.show()
 
 QTimer.singleShot(2000, mostrar_ventana)
+verificar_actualizacion_automatica()
 
 # ======================================================
 # 🔹 Ejecutar aplicación
