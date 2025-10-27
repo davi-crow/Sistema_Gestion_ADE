@@ -1,0 +1,6 @@
+PySide6
+mysql-connector-python
+configparser
+requests
+python-dotenv
+Pandas
