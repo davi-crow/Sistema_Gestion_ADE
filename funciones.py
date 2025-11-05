@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import (
     QMessageBox, QTableWidgetItem, QFileDialog, QDialog, QVBoxLayout,
     QPushButton, QInputDialog, QTableWidget, QTextEdit, QTreeWidget,
-    QTreeWidgetItem, QListWidget, QListWidgetItem, QLabel, QCheckBox
+    QTreeWidgetItem, QListWidget, QListWidgetItem, QLabel, QCheckBox, QTableWidget
 )
 
 from PySide6.QtCore import Qt, QDate
@@ -749,17 +749,17 @@ def importar_desde_excel(conexion, ventana):
         )
 
 
-def exportar_csv(ventana):
-    filas = ventana.tabla.rowCount()
-    cols = ventana.tabla.columnCount()
+def exportar_csv(tabla):
+    filas = tabla.tabla.rowCount()
+    cols = tabla.tabla.columnCount()
     if filas == 0:
         mostrar_mensaje("error", "No hay datos para exportar")
         return
     with open("personas_export.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow([ventana.tabla.horizontalHeaderItem(i).text() for i in range(cols)])
+        writer.writerow([tabla.tabla.horizontalHeaderItem(i).text() for i in range(cols)])
         for fila in range(filas):
-            writer.writerow([ventana.tabla.item(fila, c).text() for c in range(cols)])
+            writer.writerow([tabla.tabla.item(fila, c).text() for c in range(cols)])
     mostrar_mensaje("info", "Datos exportados a personas_export.csv")
 
 

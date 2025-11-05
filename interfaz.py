@@ -1,19 +1,20 @@
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QApplication,
     QLabel, QLineEdit, QPushButton, QComboBox, QCheckBox,
-    QTableWidget, QTableWidgetItem, QHeaderView, QMessageBox,
+    QTableWidget, QTableWidgetItem, QHeaderView, QMessageBox, QTableWidget,
     QDateEdit, QSizePolicy, QAbstractItemView, QMenu, QDialog, QTextEdit, QTreeWidget, QTreeWidgetItem
 )
-from PySide6.QtCore import Qt, QDate, QSize
+from PySide6.QtCore import Qt, QDate, QSize, QTimer
 from PySide6.QtGui import QAction, QIcon, QStandardItemModel, QStandardItem, QColor
-
+from utilidades import verificar_actualizacion_con_dialogo
 from funciones import (
     cargar_cursos, refrescar_tabla, agregar_persona, eliminar_persona,
     exportar_csv, actualizar_persona, eliminar_personas_seleccionadas, cargar_persona_para_editar, 
     importar_desde_excel, agregar_curso, eliminar_curso, desmatricular_persona, exportar_nombres_txt, importar_nombres_txt, agregar_varios_cursos_tabla
 )
+from openai import OpenAI
 from ventanas_secundarias import VentanaPagos, VentanaPendientes, CheckNegroDelegate
-from utilidades import resource_path, aplicar_tema, mostrar_mensaje
+from utilidades import resource_path, aplicar_tema, mostrar_mensaje, guardar_tema, obtener_tema
 import mysql.connector
 import os
 
@@ -32,7 +33,7 @@ class VentanaPrincipal(QMainWindow):
         
         
 
-
+        # Comprobar si hay actualización
 
         self.crear_menu()
         self.crear_formulario()
@@ -265,7 +266,7 @@ class VentanaPrincipal(QMainWindow):
         boton_agregar_curso.setFixedWidth(230)
         boton_agregar_curso.setIcon(QIcon("iconos/course.png"))
         boton_agregar_curso.setIconSize(QSize(20, 30))
-        boton_agregar_curso.clicked.connect(lambda: agregar_curso())
+        boton_agregar_curso.clicked.connect(lambda: agregar_curso(self.conexion, self))
         self.form_right.addWidget(boton_agregar_curso, alignment=Qt.AlignmentFlag.AlignCenter)
 
         boton_agregar_varios = QPushButton("🌐Agregar varios cursos")
@@ -302,18 +303,49 @@ class VentanaPrincipal(QMainWindow):
         self.layout.addLayout(self.form_layout)
 
         # Selector de tema
+    
+            # --- Sección de selección de tema ---
         tema_layout = QHBoxLayout()
         tema_label = QLabel("Tema de la interfaz:")
         tema_combo = QComboBox()
         tema_combo.setFixedHeight(30)
-        tema_combo.setFixedWidth(140)
-        tema_combo.addItem("Default", "Default")
-        tema_combo.addItems(["claro", "oscuro", "rosa pastel", "verde suave", "azul moderno"])
+        tema_combo.setFixedWidth(180)
+
+        # Lista de temas visibles (texto) + clave interna (para guardar/aplicar)
+        temas = [
+            ("Default",       "default"),
+            ("Claro",         "claro"),
+            ("Oscuro",        "oscuro"),
+            ("Rosa pastel",   "rosa_pastel"),
+            ("Verde suave",   "verde_suave"),
+            ("Azul moderno",  "azul_moderno"),
+        ]
+        for texto, clave in temas:
+            tema_combo.addItem(texto, clave)
+
         tema_layout.addWidget(tema_label)
         tema_layout.addWidget(tema_combo)
         self.layout.addLayout(tema_layout)
-        tema_combo.currentTextChanged.connect(lambda nombre: aplicar_tema(QApplication.instance(), nombre))
 
+        # --- Aplicar el tema guardado al iniciar ---
+        tema_guardado = obtener_tema() or "oscuro"  # usa 'oscuro' si no existe
+        idx = tema_combo.findData(tema_guardado)
+        if idx != -1:
+            tema_combo.setCurrentIndex(idx)
+
+        aplicar_tema(QApplication.instance(), tema_guardado)
+
+        # --- Aplicar y guardar al cambiar ---
+        def on_tema_changed(index: int):
+            clave = tema_combo.itemData(index)
+            app = QApplication.instance()
+            aplicar_tema(app, clave)
+            guardar_tema(clave)
+            print(f"🎨 Tema cambiado y guardado: {clave}")
+
+        tema_combo.currentIndexChanged.connect(on_tema_changed)
+
+      
 
     # ==================== MENÚ ====================
     def crear_menu(self):
@@ -329,6 +361,23 @@ class VentanaPrincipal(QMainWindow):
         accion_ver_cursos = QAction("​📈​Ver / Editar cursos", menubar)
         accion_ver_cursos.triggered.connect(self.ventana_info_cursos)
         menu_gestion.addAction(accion_ver_cursos)
+        
+        barra_menu = self.menuBar()
+
+        # Crear menú "Ayuda"
+        menu_ayuda = barra_menu.addMenu("Ayuda")
+
+        # Crear acción para verificar actualizaciones
+        accion_actualizar = QAction("Buscar actualizaciones", self)
+        accion_actualizar.triggered.connect(lambda: verificar_actualizacion_con_dialogo(self))
+
+        # Agregar la acción al menú "Ayuda"
+        menu_ayuda.addAction(accion_actualizar)
+        
+        accion_actualizar = QAction("Buscar actualizaciones", self)
+        accion_actualizar.triggered.connect(lambda: verificar_actualizacion_con_dialogo(self))
+        menu_ayuda.addAction(accion_actualizar)
+        QTimer.singleShot(3000, lambda: verificar_actualizacion_con_dialogo(self))
 
     # Abrir ventana de pagos
     def ventana_pagos(self):
@@ -349,6 +398,18 @@ class VentanaPrincipal(QMainWindow):
     # Placeholder para “Ver / Editar cursos”
     def ventana_info_cursos(self):
         QMessageBox.information(self, "Cursos", "Aquí puedes abrir tu gestión de cursos.")
+
+    from openai import OpenAI
+
+    def sugerir_mejoras(codigo_usuario):
+        client = OpenAI(api_key="sk-proj-XXXX")
+        prompt = f"Analiza y mejora este fragmento de Python:\n{codigo_usuario}"
+        res = client.chat.completions.create(
+            model="gpt-4-turbo",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        return res.choices[0].message.content
+
 
     # ==================== FORMULARIO ====================
 

@@ -48,17 +48,11 @@ def obtener_ip_local():
 # ==============================================
 def conectar():
     config = cargar_config()
-
-    # Si en el config.ini host = auto → usar IP local
-    host = config.get("host", "127.0.0.1")
-    if host.lower() == "auto":
-        host = obtener_ip_local()
-
-    conexion = mysql.connector.connect(
-        host=host,
-        user=config.get("user", "root"),
-        password=config.get("password", ""),
-        database=config.get("database", "gestion_de_personas"),
+    return mysql.connector.connect(
+        host=config.get("host"),
+        user=config.get("user"),
+        password=config.get("password"),
+        database=config.get("database"),
         port=int(config.get("port", 3306))
     )
-    return conexion
+
