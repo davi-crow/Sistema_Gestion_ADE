@@ -391,7 +391,7 @@ class ChatGPTApp(QWidget):
 
         try:
             from openai import OpenAI
-            client = OpenAI(api_key="Tsk-proj-6MpwB3xIxiSnHpsN9aNl6qimb6ZRS1mC86UrcWMetNBLEsyRACOyeym0Zq8jOH3q4A5PsbkSyNT3BlbkFJ64Yx9QYvddNu25gbiksSLL8fVpbGxbj4lSm9g-urei6m9th_7vC9K_CqZeI0GldHNxOGhgEbkA")
+            client = OpenAI(api_key="")
 
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
